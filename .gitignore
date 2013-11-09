@@ -2,9 +2,12 @@
 *.log
 
 # sbt specific
+<<<<<<< HEAD
 .cache/
 .history/
 .lib/
+=======
+>>>>>>> ea511ee641909dd8dabb8b2fb084cc5705e76eeb
 dist/*
 target/
 lib_managed/
@@ -13,4 +16,8 @@ project/boot/
 project/plugins/project/
 
 # Scala-IDE specific
+<<<<<<< HEAD
 .scala_dependencies
+=======
+.scala_dependencies
+>>>>>>> ea511ee641909dd8dabb8b2fb084cc5705e76eeb
