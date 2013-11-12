@@ -12,15 +12,18 @@ abstract class QuickCheckHeap extends Properties("Heap") with IntHeap {
   lazy val genHeap: Gen[H] = for {
     v <- arbitrary[Int]
     h <- oneOf(value(empty), genHeap)
-  } yield insert(v, h)
+    e <- arbitrary[Boolean]
+  } yield if(e) empty else insert(v, h)
 
   implicit lazy val arbHeap: Arbitrary[H] = Arbitrary(genHeap)
-
+ 
+  // Example: Insert single value & findMin
   property("min1") = forAll { x: Int =>
     val h = insert(x, empty)
     findMin(h) == x
   }
   
+  // Example: Verify generator works
   property("gen1") = forAll { h: H =>
     val m = if (isEmpty(h)) 0 else findMin(h)
     findMin(insert(m, h)) == m
@@ -43,20 +46,8 @@ abstract class QuickCheckHeap extends Properties("Heap") with IntHeap {
   // Given any heap, you should get a sorted sequence 
   // of elements when continually finding and deleting minima. 
   // (Hint: recursion and helper functions are your friends.)
-  property("acending order") = forAll { (x: Int, y: Int, z: Int) =>
-    def insertMany(h: H, s: List[Int]): H = s match {
-      case Nil => h
-      case t::ts => insertMany(insert(t, h), ts)
-    }
-  
-    def findAndDeleteAll(h: H): List[Int] = {
-      def toList(l: List[Int], heap: H): List[Int] =
-        if (isEmpty(heap)) l.reverse
-        else toList(findMin(heap)::l, deleteMin(heap))     
-      toList(Nil, h)
-    }
-    
-  	findAndDeleteAll(insertMany(empty, List(x,y,z))) == List(x,y,z).sorted
+  property("acending order") = forAll { (x: Int, y: Int, z: Int) =>   
+    findAndDeleteAll(insertMany(empty, List(x,y,z))) == List(x,y,z).sorted
   }
   
   // Finding a minimum of the melding of any two heaps 
@@ -65,4 +56,19 @@ abstract class QuickCheckHeap extends Properties("Heap") with IntHeap {
     findMin(meld(insert(x,empty), insert(y, empty))) == List(x,y).min
   }
 
+  //
+  // HELPERS
+  
+  def insertMany(h: H, s: List[Int]): H = s match {
+    case Nil => h
+    case t::ts => insertMany(insert(t, h), ts)
+  }
+  
+  def findAndDeleteAll(h: H): List[Int] = {
+    def toList(l: List[Int], heap: H): List[Int] =
+      if (isEmpty(heap)) l.reverse
+      else toList(findMin(heap)::l, deleteMin(heap))     
+    toList(Nil, h)
+  }
+  
 }
