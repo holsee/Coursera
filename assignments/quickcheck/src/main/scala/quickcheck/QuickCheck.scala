@@ -21,7 +21,7 @@ abstract class QuickCheckHeap extends Properties("Heap") with IntHeap {
     findMin(h) == x
   }
   
-  property("gen1") = forAll { (h: H) =>
+  property("gen1") = forAll { h: H =>
     val m = if (isEmpty(h)) 0 else findMin(h)
     findMin(insert(m, h)) == m
   }
@@ -44,22 +44,25 @@ abstract class QuickCheckHeap extends Properties("Heap") with IntHeap {
   // of elements when continually finding and deleting minima. 
   // (Hint: recursion and helper functions are your friends.)
   property("acending order") = forAll { (x: Int, y: Int, z: Int) =>
-    def insertMany(h: H, s: Int*) = {
-      var temp = h
-      for (i <- s) {
-        temp = insert(i, temp)
-      }
-      temp
+    def insertMany(h: H, s: List[Int]): H = s match {
+      case Nil => h
+      case t::ts => insertMany(insert(t, h), ts)
     }
   
-    def deleteMany(h: H): List[Int] = {
+    def findAndDeleteAll(h: H): List[Int] = {
       def toList(l: List[Int], heap: H): List[Int] =
         if (isEmpty(heap)) l.reverse
         else toList(findMin(heap)::l, deleteMin(heap))     
       toList(Nil, h)
     }
-  	
-    deleteMany(insertMany(empty, x, y, z)) == List(x,y,z).sorted
+    
+  	findAndDeleteAll(insertMany(empty, List(x,y,z))) == List(x,y,z).sorted
+  }
+  
+  // Finding a minimum of the melding of any two heaps 
+  // should return a minimum of one or the other.
+  property("meld two heaps") = forAll { (x: Int, y: Int) =>
+    findMin(meld(insert(x,empty), insert(y, empty))) == List(x,y).min
   }
 
 }
