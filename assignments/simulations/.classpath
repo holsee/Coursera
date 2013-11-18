@@ -1,7 +1,6 @@
 <classpath>
   <classpathentry output="target/scala-2.10/classes" path="src/main/scala" kind="src"></classpathentry>
   <classpathentry output="target/scala-2.10/test-classes" path="src/test/scala" kind="src"></classpathentry>
-  <classpathentry path="./lib/scala-async_2.10-1.0.0-SNAPSHOT.jar" kind="lib"></classpathentry>
   <classpathentry kind="con" path="org.scala-ide.sdt.launching.SCALA_CONTAINER"></classpathentry>
   <classpathentry path="./lib_managed/jars/com.netflix.rxjava/rxjava-scala/rxjava-scala-0.14.6.jar" kind="lib"></classpathentry>
   <classpathentry path="./lib_managed/jars/com.netflix.rxjava/rxjava-core/rxjava-core-0.14.6.jar" kind="lib"></classpathentry>
