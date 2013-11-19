@@ -76,7 +76,18 @@ abstract class CircuitSimulator extends Simulator {
   }
 
   def demux(in: Wire, c: List[Wire], out: List[Wire]) {
-    ???
+    c match {
+      case Nil => andGate(in, in, out(0))
+      case head :: tail => {
+        val out0, out1, not = new Wire
+        andGate(in, head, out0)
+        inverter(head, not)
+        andGate(in, not, out1)
+        val outs = out.length / 2
+        demux(out0, tail, out take outs)
+        demux(out1, tail, out drop outs)      
+      } 
+    }
   }
 
 }
