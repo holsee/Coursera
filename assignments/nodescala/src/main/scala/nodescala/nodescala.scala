@@ -32,7 +32,7 @@ trait NodeScala {
   private def respond(exchange: Exchange, token: CancellationToken, response: Response): Unit = {
     while (response.hasNext && token.nonCancelled)
       exchange write response.next
-    exchange close
+    exchange.close
   }
 
   /** A server:
@@ -51,10 +51,10 @@ trait NodeScala {
     Future.run() { ct =>
       async {
         while (ct.nonCancelled) {
-          val (req, xchg) = await {listener nextRequest}
+          val (req, xchg) = await {listener.nextRequest}
           respond(xchg, ct, handler(req))
         }
-        listenerSubscription unsubscribe
+        listenerSubscription.unsubscribe
       }
     }
   }
@@ -133,7 +133,7 @@ object NodeScala {
         removeContext()
       }
       createContext(handler)
-      p future
+      p.future
     }
   }
 
