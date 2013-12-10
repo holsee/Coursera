@@ -86,14 +86,13 @@ object WikipediaSuggest extends SimpleSwingApplication with ConcreteSwingApi wit
     // TO IMPLEMENT
     val suggestions: Observable[Try[List[String]]] = searchTerms.flatMap(wikiSuggestResponseStream).recovered
     
-    val sugSubFunc: PartialFunction[Try[List[String]], Unit] = {
-      case Success(v) => suggestionList.listData = v
-      case Failure(e) => status.text = e.getMessage
-    }
-
     // TO IMPLEMENT
-    val suggestionSubscription: Subscription =
-      suggestions.observeOn(eventScheduler).subscribe(sugSubFunc)
+    val suggestionSubscription: Subscription = suggestions.observeOn(eventScheduler).subscribe {
+      x => x match {
+        case Success(v) => suggestionList.listData = v
+        case Failure(e) => status.text = e.getMessage
+      }
+    }
 
     // TO IMPLEMENT
     val selections: Observable[String] =
