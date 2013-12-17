@@ -50,7 +50,7 @@ object BinaryTreeSet {
 }
 
 
-class BinaryTreeSet extends Actor {
+class BinaryTreeSet extends Actor with ActorLogging {
   import BinaryTreeSet._
   import BinaryTreeNode._
 
@@ -66,15 +66,19 @@ class BinaryTreeSet extends Actor {
 
   // optional
   /** Accepts `Operation` and `GC` messages. */
-  val normal: Receive = { case _ => ??? }
+  val normal: Receive = {
+    case op:Operation => root ! op
+    case _ => ???
+  }
 
   // optional
   /** Handles messages while garbage collection is performed.
     * `newRoot` is the root of the new binary tree where we want to copy
     * all non-removed elements into.
     */
-  def garbageCollecting(newRoot: ActorRef): Receive = ???
-
+  def garbageCollecting(newRoot: ActorRef): Receive = {
+    ???
+  }
 }
 
 object BinaryTreeNode {
@@ -89,7 +93,7 @@ object BinaryTreeNode {
   def props(elem: Int, initiallyRemoved: Boolean) = Props(classOf[BinaryTreeNode],  elem, initiallyRemoved)
 }
 
-class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor {
+class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor with ActorLogging {
   import BinaryTreeNode._
   import BinaryTreeSet._
 
@@ -101,7 +105,12 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor {
 
   // optional
   /** Handles `Operation` messages and `CopyTo` requests. */
-  val normal: Receive = { case _ => ??? }
+  val normal: Receive = {
+    case op:Contains => contains(op)
+    case op:Insert => insert(op)
+    //case op:Remove => remove(op)
+    //case CopyTo(node) => copyTo(node)
+  }
 
   // optional
   /** `expected` is the set of ActorRefs whose replies we are waiting for,
@@ -109,4 +118,39 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor {
     */
   def copying(expected: Set[ActorRef], insertConfirmed: Boolean): Receive = ???
 
+  def contains(op:Operation) = op.elem match {
+    case e if (e == elem) => onEqual(op)
+    case e if (e < elem) => delegateContains(op, Left)
+    case e if (e > elem) => delegateContains(op, Right)
+    //case _ => op.requester ! ContainsResult(op.id, false)
+  }
+
+  def onEqual(op:Operation) = {
+    op.requester ! ContainsResult(op.id, !removed)
+  }
+
+  def delegateContains(op:Operation, pos:Position) = {
+    if(subtrees contains pos){
+      subtrees(pos) ! op
+    } else {
+      op.requester ! ContainsResult(op.id, false)
+    }
+  }
+
+  def insert(op:Operation) = op.elem match {
+    case e if (e == elem) => onEqual(op)
+    case e if (e < elem) => delegateInsert(op, Left)
+    case e if (e > elem) => delegateInsert(op, Right)
+  }
+
+  def delegateInsert(op:Operation, pos:Position) = {
+    if(subtrees contains pos){
+      subtrees(pos) ! op
+    } else {
+      subtrees = subtrees + (pos -> context.actorOf(BinaryTreeNode.props(op.elem, initiallyRemoved = false)))
+      op.requester ! OperationFinished(op.id)
+    }
+  }
+
 }
+
