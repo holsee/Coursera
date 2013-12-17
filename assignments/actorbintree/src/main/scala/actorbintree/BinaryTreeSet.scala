@@ -67,9 +67,12 @@ class BinaryTreeSet extends Actor with ActorLogging {
   // optional
   /** Accepts `Operation` and `GC` messages. */
   val normal: Receive = {
-    case GC => ???
+    case GC => {
+      val newRoot = createRoot
+      root ! CopyTo(newRoot)
+      context.become(garbageCollecting(newRoot))
+    }
     case op:Operation => root ! op
-    case _ => ???
   }
 
   // optional
@@ -78,7 +81,14 @@ class BinaryTreeSet extends Actor with ActorLogging {
     * all non-removed elements into.
     */
   def garbageCollecting(newRoot: ActorRef): Receive = {
-    ???
+    case CopyFinished => {
+      root ! PoisonPill
+      root = newRoot
+      pendingQueue.foreach { newRoot ! _ }
+      pendingQueue = Queue.empty[Operation]
+      context.unbecome()
+    }
+    case op:Operation => pendingQueue = pendingQueue :+ op
   }
 }
 
@@ -110,14 +120,38 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor wit
     case op:Contains => contains(op)
     case op:Insert => insert(op)
     case op:Remove => remove(op)
-    //case CopyTo(node) => copyTo(node)
+    case CopyTo(node) => copyTo(node)
   }
 
   // optional
   /** `expected` is the set of ActorRefs whose replies we are waiting for,
     * `insertConfirmed` tracks whether the copy of this node to the new tree has been confirmed.
     */
-  def copying(expected: Set[ActorRef], insertConfirmed: Boolean): Receive = ???
+  def copying(expected: Set[ActorRef], insertConfirmed: Boolean): Receive ={
+    case OperationFinished(elem) => {
+      context.become(copying(expected, true))
+      if(expected.isEmpty)
+        self ! CopyFinished
+    }
+    case CopyFinished => {
+      val rest = expected - sender
+      if(rest.isEmpty && insertConfirmed) {
+        context.parent ! CopyFinished
+      } else {
+        context.become(copying(rest, insertConfirmed))
+      }
+    }
+  }
+
+  def copyTo(node:ActorRef) = {
+    val expected = subtrees.values.toSet
+    context become copying(expected, false)
+    if(!removed)
+      node ! Insert(self, elem, elem)
+    else
+      self ! OperationFinished(elem)
+    expected.foreach(_ ! CopyTo(node))  
+  }
 
   private def path(e:Int) = if (e < elem) Left else Right
 
