@@ -67,6 +67,7 @@ class BinaryTreeSet extends Actor with ActorLogging {
   // optional
   /** Accepts `Operation` and `GC` messages. */
   val normal: Receive = {
+    case GC => ???
     case op:Operation => root ! op
     case _ => ???
   }
@@ -119,14 +120,9 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor wit
   def copying(expected: Set[ActorRef], insertConfirmed: Boolean): Receive = ???
 
   def contains(op:Operation) = op.elem match {
-    case e if (e == elem) => onEqual(op)
+    case e if (e == elem) => op.requester ! ContainsResult(op.id, !removed)
     case e if (e < elem) => delegateContains(op, Left)
     case e if (e > elem) => delegateContains(op, Right)
-    //case _ => op.requester ! ContainsResult(op.id, false)
-  }
-
-  def onEqual(op:Operation) = {
-    op.requester ! ContainsResult(op.id, !removed)
   }
 
   def delegateContains(op:Operation, pos:Position) = {
@@ -139,7 +135,7 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor wit
 
 
   def insert(op:Operation) = op.elem match {
-    case e if (e == elem) => onEqual(op)
+    case e if (e == elem) => op.requester ! OperationFinished(op.id)
     case e if (e < elem) => delegateInsert(op, Left)
     case e if (e > elem) => delegateInsert(op, Right)
   }
