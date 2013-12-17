@@ -108,7 +108,7 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor wit
   val normal: Receive = {
     case op:Contains => contains(op)
     case op:Insert => insert(op)
-    //case op:Remove => remove(op)
+    case op:Remove => remove(op)
     //case CopyTo(node) => copyTo(node)
   }
 
@@ -137,6 +137,7 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor wit
     }
   }
 
+
   def insert(op:Operation) = op.elem match {
     case e if (e == elem) => onEqual(op)
     case e if (e < elem) => delegateInsert(op, Left)
@@ -152,5 +153,22 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor wit
     }
   }
 
+
+  def remove(op:Operation) = op.elem match {
+    case e if (e == elem) => {
+      removed = true
+      op.requester ! OperationFinished(op.id)
+    }
+    case e if (e < elem) => delegateRemove(op, Left)
+    case e if (e > elem) => delegateRemove(op, Right)
+  }
+
+  def delegateRemove(op:Operation, pos:Position) = {
+    if(subtrees contains pos){
+      subtrees(pos) ! op
+    } else {
+      op.requester ! OperationFinished(op.id)
+    }
+  }
 }
 
