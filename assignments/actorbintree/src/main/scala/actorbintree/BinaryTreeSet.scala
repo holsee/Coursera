@@ -127,7 +127,7 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor wit
   /** `expected` is the set of ActorRefs whose replies we are waiting for,
     * `insertConfirmed` tracks whether the copy of this node to the new tree has been confirmed.
     */
-  def copying(expected: Set[ActorRef], insertConfirmed: Boolean): Receive ={
+  def copying(expected: Set[ActorRef], insertConfirmed: Boolean): Receive = {
     case OperationFinished(elem) => {
       context.become(copying(expected, true))
       if(expected.isEmpty)
@@ -145,12 +145,12 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor wit
 
   def copyTo(node:ActorRef) = {
     val expected = subtrees.values.toSet
-    context become copying(expected, false)
+    context.become(copying(expected, false))
     if(!removed)
       node ! Insert(self, elem, elem)
     else
       self ! OperationFinished(elem)
-    expected.foreach(_ ! CopyTo(node))  
+    expected.foreach {_ ! CopyTo(node)}  
   }
 
   private def path(e:Int) = if (e < elem) Left else Right
@@ -171,7 +171,7 @@ class BinaryTreeNode(val elem: Int, initiallyRemoved: Boolean) extends Actor wit
   def insert(op:Operation) = op.elem match {
     case e if (e == elem) => { 
       removed = false
-      op.requester ! OperationFinished(op.id) 
+      op.requester ! OperationFinished(op.id)
     }
     case e => delegateInsert(op, path(e)) 
   }
