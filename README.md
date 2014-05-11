@@ -1,10 +1,7 @@
-Reactive Prog 2013
-==================
 
-./Reactive2013
+# Coursera Assignments
 
+### Courses
 
-Funcational Prog 2013
-=====================
-
-./Functional2014
+- [Reactive2013](Reactive2013)
+- [Functional2014](Functional2014)
