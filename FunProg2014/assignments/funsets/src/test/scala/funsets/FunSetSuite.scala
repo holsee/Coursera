@@ -29,10 +29,10 @@ class FunSetSuite extends FunSuite {
   /**
    * Tests are written using the "test" operator and the "assert" method.
    */
-  test("string take") {
-    val message = "hello, world"
-    assert(message.take(5) == "hello")
-  }
+  // test("string take") {
+  //   val message = "hello, world"
+  //   assert(message.take(5) == "hello")
+  // }
 
   /**
    * For ScalaTest tests, there exists a special equality operator "===" that
@@ -43,15 +43,20 @@ class FunSetSuite extends FunSuite {
    * Try it out! Change the values so that the assertion fails, and look at the
    * error message.
    */
-  test("adding ints") {
-    assert(1 + 2 === 3)
-  }
+  // test("adding ints") {
+  //   assert(1 + 2 === 3)
+  // }
 
   
   import FunSets._
 
-  test("contains is implemented") {
-    assert(contains(x => true, 100))
+  test("contains returns true when found") {
+    assert(contains(Set(100), 100))
+  }
+
+
+  test("contains returns false when not found") {
+    assert(!contains(Set(101), 100))
   }
   
   /**
@@ -86,7 +91,7 @@ class FunSetSuite extends FunSuite {
    * Once you finish your implementation of "singletonSet", exchange the
    * function "ignore" by "test".
    */
-  ignore("singletonSet(1) contains 1") {
+  test("singletonSet(1) contains 1") {
     
     /**
      * We create a new instance of the "TestSets" trait, this gives us access
@@ -101,7 +106,7 @@ class FunSetSuite extends FunSuite {
     }
   }
 
-  ignore("union contains all elements") {
+  test("union contains all elements") {
     new TestSets {
       val s = union(s1, s2)
       assert(contains(s, 1), "Union 1")
