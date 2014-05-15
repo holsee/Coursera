@@ -29,10 +29,10 @@ class FunSetSuite extends FunSuite {
   /**
    * Tests are written using the "test" operator and the "assert" method.
    */
-  test("string take") {
-    val message = "hello, world"
-    assert(message.take(5) == "hello")
-  }
+  // test("string take") {
+  //   val message = "hello, world"
+  //   assert(message.take(5) == "hello")
+  // }
 
   /**
    * For ScalaTest tests, there exists a special equality operator "===" that
@@ -43,17 +43,14 @@ class FunSetSuite extends FunSuite {
    * Try it out! Change the values so that the assertion fails, and look at the
    * error message.
    */
-  test("adding ints") {
-    assert(1 + 2 === 3)
-  }
+  // test("adding ints") {
+  //   assert(1 + 2 === 3)
+  // }
 
   
   import FunSets._
 
-  test("contains is implemented") {
-    assert(contains(x => true, 100))
-  }
-  
+
   /**
    * When writing tests, one would often like to re-use certain values for multiple
    * tests. For instance, we would like to create an Int-set and have multiple test
@@ -74,9 +71,22 @@ class FunSetSuite extends FunSuite {
    */
 
   trait TestSets {
+    val s0 = singletonSet(0)
     val s1 = singletonSet(1)
     val s2 = singletonSet(2)
     val s3 = singletonSet(3)
+    val s4 = singletonSet(1000)
+    var all = union(union(union(union(s0, s1), s2), s3), s4)
+    var evens = filter(all, e => e % 2 == 0)
+    var odds = filter(all, e => e % 2 != 0)
+  }
+
+  test("contains returns true when found") {
+    assert(contains(Set(100), 100))
+  }
+
+  test("contains returns false when not found") {
+    assert(!contains(Set(101), 100))
   }
 
   /**
@@ -86,7 +96,7 @@ class FunSetSuite extends FunSuite {
    * Once you finish your implementation of "singletonSet", exchange the
    * function "ignore" by "test".
    */
-  ignore("singletonSet(1) contains 1") {
+  test("singletonSet(1) contains 1") {
     
     /**
      * We create a new instance of the "TestSets" trait, this gives us access
@@ -101,12 +111,85 @@ class FunSetSuite extends FunSuite {
     }
   }
 
-  ignore("union contains all elements") {
+  test("union contains all elements") {
     new TestSets {
-      val s = union(s1, s2)
-      assert(contains(s, 1), "Union 1")
-      assert(contains(s, 2), "Union 2")
-      assert(!contains(s, 3), "Union 3")
+      assert(FunSets.toString(union(s0, s4)) === "{0,1000}" )
+    }
+  }
+
+  test("intersect contains shared elements") {
+    new TestSets {
+      val s = intersect(s1, s1)
+      assert(contains(s, 1), "Intersect 1")
+      assert(!contains(s, 2), "Intersect 2")
+      assert(!contains(s, 3), "Intersect 3")
+    }
+  }
+
+  test("no intersection means no elements") {
+    new TestSets {
+      val s = intersect(s1, s2)
+      assert(!contains(s, 1), "Intersect 1")
+      assert(!contains(s, 2), "Intersect 2")
+      assert(!contains(s, 3), "Intersect 3")
+    }
+  }
+
+  test("diff contains 'complement' of first set") {
+    new TestSets {
+      val s = diff(s1, s2)
+      assert(contains(s, 1), "Diff 1")
+      assert(!contains(s, 2), "Diff 2")
+      assert(!contains(s, 3), "Diff 3")
+    }
+  }
+
+  test("filter odds") {
+    new TestSets {
+      val s = filter(all, e => e % 2 != 0)
+      assert(contains(s, 1), "Diff 1")
+      assert(!contains(s, 2), "Diff 2")
+      assert(contains(s, 3), "Diff 3")
+    }
+  }
+
+  test("filter evens") {
+    new TestSets {
+      val s = filter(all, e => e % 2 == 0)
+      assert(!contains(s, 1), "Diff 1")
+      assert(contains(s, 2), "Diff 2")
+      assert(!contains(s, 3), "Diff 3")
+    }
+  }
+
+  test("forall") {
+    new TestSets {
+      assert(forall(evens, e => e % 2 == 0)) 
+      assert(!forall(evens, e => e % 2 != 0))
+      assert(forall(odds, e => e % 2 != 0)) 
+      assert(!forall(odds, e => e % 2 == 0)) 
+    }
+  }
+
+  test("exists") {
+    new TestSets {
+      assert(exists(s1, e => e == 1)) 
+      assert(exists(s2, e => e % 2 == 0))
+      assert(exists(all, e => e % 2 == 0))
+      assert(!exists(odds, e => e % 2 == 0))
+    }
+  }
+
+  test("map") {
+    new TestSets {
+      val s = map(s1, e => e + 1)
+      assert(contains(s, 2))
+    }
+  }
+
+  test("map -1") {
+    new TestSets {
+      assert( FunSets.toString(map(all, e => e - 1)) === "{-1,0,1,2,999}" )
     }
   }
 }
