@@ -1,5 +1,7 @@
 *.class
 *.log
+**/.history
+**/ws
 
 .cache
 .cache/
