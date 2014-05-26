@@ -3,6 +3,7 @@
 **/.history
 **/ws
 
+.idea/
 .cache
 .cache/
 .history/
