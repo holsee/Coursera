@@ -110,7 +110,15 @@ object Anagrams {
    *  Note: the resulting value is an occurrence - meaning it is sorted
    *  and has no zero-entries.
    */
-  def subtract(x: Occurrences, y: Occurrences): Occurrences = ???
+  def subtract(x: Occurrences, y: Occurrences): Occurrences = {
+    y.foldLeft(x.toMap) {
+      case (xMap, (yChar, yCount)) => 
+        if (xMap(yChar) - yCount <= 0) 
+          xMap - yChar
+        else 
+          xMap.updated(yChar, xMap(yChar) - yCount)
+    }
+  }.toList.sorted
 
   /** Returns a list of all anagram sentences of the given sentence.
    *
