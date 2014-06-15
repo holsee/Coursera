@@ -38,10 +38,12 @@ object Anagrams {
                                                .sorted
 
   /** Converts a sentence into its character occurrence list. */
-  def sentenceOccurrences(s: Sentence): Occurrences = 
+  def sentenceOccurrences(s: Sentence): Occurrences =
      s.flatMap(wordOccurrences)
-      .groupBy(o => o._1)
-      .map { case (c, t) => (c, t.foldLeft(0)((x, y) => y._2 + x)) }
+      .groupBy { _._1 }
+      .map {
+        case (c, t) => (c, t.foldLeft(0)((x, y) => y._2 + x))
+      }
       .toList
       .sorted
 
@@ -60,7 +62,7 @@ object Anagrams {
    *    List(('a', 1), ('e', 1), ('t', 1)) -> Seq("ate", "eat", "tea")
    *
    */
-  val dictionaryByOccurrences: Map[Occurrences, List[Word]] = 
+  val dictionaryByOccurrences: Map[Occurrences, List[Word]] =
     dictionary.groupBy(x => wordOccurrences(x)) withDefaultValue Nil
 
   /** Returns all the anagrams of a given word. */
@@ -110,15 +112,15 @@ object Anagrams {
    *  Note: the resulting value is an occurrence - meaning it is sorted
    *  and has no zero-entries.
    */
-  def subtract(x: Occurrences, y: Occurrences): Occurrences = {
+  def subtract(x: Occurrences, y: Occurrences): Occurrences =
     y.foldLeft(x.toMap) {
-      case (xMap, (yChar, yCount)) => 
-        if (xMap(yChar) - yCount <= 0) 
+      case (xMap, (yChar, yCount)) =>
+        if (xMap(yChar) - yCount <= 0)
           xMap - yChar
-        else 
+        else
           xMap.updated(yChar, xMap(yChar) - yCount)
-    }
-  }.toList.sorted
+    }.toList.sorted
+
 
   /** Returns a list of all anagram sentences of the given sentence.
    *
@@ -161,12 +163,12 @@ object Anagrams {
    *  Note: There is only one anagram of an empty sentence.
    */
   def sentenceAnagrams(sentence: Sentence): List[Sentence] = {
-     def f(occurrences:Occurrences):List[Sentence] = occurrences match {
+    def f(occurrences: Occurrences) :List[Sentence] = occurrences match {
       case Nil => List(Nil)
       case occ => for {
-          comb <- combinations(occurrences)
-          word <- dictionaryByOccurrences(comb)
-          sent <- f(subtract(occ, wordOccurrences(word)))
+        comb <- combinations(occurrences)
+        word <- dictionaryByOccurrences(comb)
+        sent <- f(subtract(occ, wordOccurrences(word)))
       } yield word::sent
     }
     f(sentenceOccurrences(sentence))
