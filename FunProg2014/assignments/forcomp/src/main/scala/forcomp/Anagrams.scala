@@ -35,15 +35,15 @@ object Anagrams {
                                                .groupBy(x => x)
                                                .map(x => (x._1, x._2.length))
                                                .toList
-                                               .sortBy {_._1}
-  // String = List(Char)
-  // Word = String
-  // Sentence = List(Word) // List(String) // List(List(Char))
-  // Occurrences = List[(Char, Int)]
+                                               .sorted
 
   /** Converts a sentence into its character occurrence list. */
-  def sentenceOccurrences(s: Sentence): Occurrences = s.flatMap(wordOccurrences)
-
+  def sentenceOccurrences(s: Sentence): Occurrences = 
+     s.flatMap(wordOccurrences)
+      .groupBy(o => o._1)
+      .map { case (c, t) => (c, t.foldLeft(0)((x, y) => y._2 + x)) }
+      .toList
+      .sorted
 
   /** The `dictionaryByOccurrences` is a `Map` from different occurrences to a sequence of all
    *  the words that have that occurrence count.
@@ -60,8 +60,8 @@ object Anagrams {
    *    List(('a', 1), ('e', 1), ('t', 1)) -> Seq("ate", "eat", "tea")
    *
    */
-  lazy val dictionaryByOccurrences: Map[Occurrences, List[Word]] =
-    dictionary.groupBy(w=>wordOccurrences(w))
+  val dictionaryByOccurrences: Map[Occurrences, List[Word]] = 
+    dictionary.groupBy(x => wordOccurrences(x)) withDefaultValue Nil
 
   /** Returns all the anagrams of a given word. */
   def wordAnagrams(word: Word): List[Word] =
@@ -160,6 +160,16 @@ object Anagrams {
    *
    *  Note: There is only one anagram of an empty sentence.
    */
-  def sentenceAnagrams(sentence: Sentence): List[Sentence] = ???
+  def sentenceAnagrams(sentence: Sentence): List[Sentence] = {
+     def f(occurrences:Occurrences):List[Sentence] = occurrences match {
+      case Nil => List(Nil)
+      case occ => for {
+          comb <- combinations(occurrences)
+          word <- dictionaryByOccurrences(comb)
+          sent <- f(subtract(occ, wordOccurrences(word)))
+      } yield word::sent
+    }
+    f(sentenceOccurrences(sentence))
+  }
 
 }
